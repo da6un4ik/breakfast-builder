@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Ingredient, INGREDIENTS } from './lib/ingredients';
+import { Ingredient } from './lib/ingredients';
 import { Drink } from './lib/drinks';
 import { Plate } from './components/Plate';
 import { Mug } from './components/Mug';
@@ -8,27 +8,31 @@ import { DrinkTray } from './components/DrinkTray';
 import { NutritionDisplay } from './components/NutritionDisplay';
 import { Toaster, toast } from 'sonner';
 
-interface PlantedIngredient extends Ingredient {
-  instanceId: string;
-  x: number;
-  y: number;
-  rotation: number;
-  scale: number;
-  zIndex: number;
-}
-
 interface PouredDrink extends Drink {
   instanceId: string;
 }
 
-const HERO_ANGLES = [0, 62, 128, 198, 276];
+const MAX_GENERATION_INGREDIENTS = 4;
+
+const buildSeedFromIds = (ids: string[]) => {
+  return ids.join('-').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+};
+
+const buildGeneratedPlateUrl = (ingredients: Ingredient[]) => {
+  const ingredientNames = ingredients.map((item) => item.name.toLowerCase()).join(', ');
+  const prompt = `Top-down realistic food photography of a breakfast plate with ${ingredientNames}, styled plating, natural morning light, crisp details, clean white ceramic plate.`;
+  const seed = buildSeedFromIds(ingredients.map((item) => item.id));
+
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=${seed}&nologo=true`;
+};
 
 export default function App() {
-  const [items, setItems] = useState<PlantedIngredient[]>([]);
+  const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
+  const [generatedPlateImage, setGeneratedPlateImage] = useState<string | null>(null);
   const [drinks, setDrinks] = useState<PouredDrink[]>([]);
 
   const totalNutrition = useMemo(() => {
-    const foodTotals = items.reduce(
+    const foodTotals = selectedIngredients.reduce(
       (acc, item) => ({
         calories: acc.calories + item.calories,
         protein: acc.protein + item.protein,
@@ -47,56 +51,32 @@ export default function App() {
       }),
       foodTotals
     );
-  }, [items, drinks]);
+  }, [selectedIngredients, drinks]);
 
-  const createPlacedItem = useCallback((ingredient: Ingredient, seed: number, zIndex: number): PlantedIngredient => {
-    const angleDeg = HERO_ANGLES[seed % HERO_ANGLES.length] + Math.random() * 12;
-    const angle = (angleDeg * Math.PI) / 180;
-    const radius = 18 + (seed % 3) * 22 + Math.random() * 10;
-
-    return {
-      ...ingredient,
-      instanceId: `${ingredient.id}-${Date.now()}-${Math.random()}`,
-      x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius,
-      rotation: Math.random() * 40 - 20,
-      scale: 0.86 + Math.random() * 0.22,
-      zIndex,
-    };
-  }, []);
-
-  const generateRealisticPlate = useCallback((heroIngredient: Ingredient) => {
-    const companionPool = INGREDIENTS.filter((item) => item.id !== heroIngredient.id);
-    const shuffled = [...companionPool].sort(() => Math.random() - 0.5);
-
-    const generatedItems: PlantedIngredient[] = [];
-    let zIndex = 1;
-
-    const heroCount = heroIngredient.id === 'egg' ? 2 : 3;
-    for (let i = 0; i < heroCount; i += 1) {
-      generatedItems.push(createPlacedItem(heroIngredient, i, zIndex));
-      zIndex += 1;
+  const generatedTitle = useMemo(() => {
+    if (selectedIngredients.length === 0) {
+      return 'Generated breakfast plate';
     }
 
-    const sideCount = 2 + Math.floor(Math.random() * 2);
-    for (let i = 0; i < sideCount; i += 1) {
-      const sideIngredient = shuffled[i % shuffled.length];
-      generatedItems.push(createPlacedItem(sideIngredient, i + 2, zIndex));
-      zIndex += 1;
-    }
-
-    return generatedItems;
-  }, [createPlacedItem]);
+    return selectedIngredients.map((item) => item.name).join(' + ');
+  }, [selectedIngredients]);
 
   const handleSelectIngredient = useCallback((ingredient: Ingredient) => {
-    const generatedPlate = generateRealisticPlate(ingredient);
-    setItems(generatedPlate);
+    setSelectedIngredients((prev) => {
+      const existing = prev.find((item) => item.id === ingredient.id);
+      const next = existing ? prev : [...prev, ingredient];
+      const trimmed = next.slice(-MAX_GENERATION_INGREDIENTS);
 
-    toast.success(`Generated plate with ${ingredient.name}`, {
-      duration: 1800,
-      position: 'bottom-center',
+      setGeneratedPlateImage(buildGeneratedPlateUrl(trimmed));
+
+      toast.success(`Generated: ${trimmed.map((item) => item.name).join(' + ')}`, {
+        duration: 1800,
+        position: 'bottom-center',
+      });
+
+      return trimmed;
     });
-  }, [generateRealisticPlate]);
+  }, []);
 
   const handleSelectDrink = useCallback((drink: Drink) => {
     const newDrink: PouredDrink = {
@@ -111,20 +91,24 @@ export default function App() {
     });
   }, []);
 
-  const handleRemoveItem = useCallback((instanceId: string) => {
-    setItems((prev) => prev.filter((item) => item.instanceId !== instanceId));
-  }, []);
-
   const handleRemoveDrink = useCallback((instanceId: string) => {
     setDrinks((prev) => prev.filter((item) => item.instanceId !== instanceId));
   }, []);
 
+  const handleClearGeneratedPlate = useCallback(() => {
+    setSelectedIngredients([]);
+    setGeneratedPlateImage(null);
+    toast.info('Generated plate cleared');
+  }, []);
+
   const handleReset = useCallback(() => {
-    if (items.length === 0 && drinks.length === 0) return;
-    setItems([]);
+    if (selectedIngredients.length === 0 && drinks.length === 0) return;
+
+    setSelectedIngredients([]);
+    setGeneratedPlateImage(null);
     setDrinks([]);
     toast.info('Breakfast reset!');
-  }, [drinks.length, items.length]);
+  }, [drinks.length, selectedIngredients.length]);
 
   return (
     <div className="min-h-screen bg-background overflow-hidden flex flex-col items-center justify-center p-4 pb-56 md:pb-60">
@@ -141,8 +125,9 @@ export default function App() {
             <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 w-[80%] h-10 bg-black/5 blur-2xl rounded-full" />
 
             <Plate
-              items={items}
-              onRemove={handleRemoveItem}
+              generatedImageUrl={generatedPlateImage}
+              generatedTitle={generatedTitle}
+              onClear={handleClearGeneratedPlate}
             />
           </div>
 
