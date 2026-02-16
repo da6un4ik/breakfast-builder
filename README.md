@@ -1,26 +1,31 @@
-# Enhanced Vite React TypeScript Template
+# Breakfast Builder
 
-This template includes built-in detection for missing CSS variables between your Tailwind config and CSS files.
+Breakfast Builder is a playful drag-and-drop style React app for composing a custom breakfast plate and seeing live nutrition totals as you add ingredients.
 
-## Features
+Repository: https://github.com/da6un4ik/breakfast-builder
 
-- **CSS Variable Detection**: Automatically detects if CSS variables referenced in `tailwind.config.cjs` are defined in `src/index.css`
-- **Enhanced Linting**: Includes ESLint, Stylelint, and custom CSS variable validation
-- **Shadcn/ui**: Pre-configured with all Shadcn components
-- **Modern Stack**: Vite + React + TypeScript + Tailwind CSS
+## Tech Stack
 
-## Available Scripts
+- React + TypeScript + Vite
+- Tailwind CSS
+- Sonner toasts
+
+## Getting Started
 
 ```bash
-# Run all linting (includes CSS variable check)
-npm run lint
+npm install
+npm run dev
 
-# Check only CSS variables
+npm run dev         # start local development server
+npm run build       # production build
+npm run preview     # preview production build
+npm run lint:types  # TypeScript type-check
+npm run lint:js     # ESLint checks
+npm run lint:css    # Stylelint checks
 npm run check:css-vars
+npm run check:css-classes
+npm run lint        # runs all lint/check scripts (uses bun)
 
-# Individual linting
-npm run lint:js    # ESLint
-npm run lint:css   # Stylelint
 ```
 
 ## CSS Variable Detection
@@ -49,11 +54,11 @@ When all variables are defined:
 ✅ All CSS variables in tailwind.config.cjs are defined
 ```
 
-## How It Works
+Gameplay
+Pick ingredients from the tray.
 
-The detection happens during the `npm run lint` command, which will:
-- Exit with error code 1 if undefined variables are found
-- Show exactly which variables need to be added to your CSS file
-- Integrate seamlessly with your development workflow
+Watch items get placed on the plate with randomized position/rotation for a natural look.
 
-This prevents runtime CSS issues where Tailwind classes reference undefined CSS variables.
+Track aggregate calories, protein, fat, and carbs.
+
+Remove ingredients or clear the full plate.
