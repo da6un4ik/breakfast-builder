@@ -37,7 +37,6 @@ export const Plate = ({ items, onRemove }: PlateProps) => {
               animate={{ 
                 scale: item.scale, 
                 opacity: 1, 
-                y: 0,
                 x: item.x,
                 y: item.y,
                 rotate: item.rotation
