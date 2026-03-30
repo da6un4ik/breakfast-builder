@@ -26,28 +26,28 @@ const comprehensionQuestions = [
 ];
 
 const ingredients = [
-  'tomate maduro – спелый помидор – овощ',
-  'pepino – огурец – овощ',
-  'pimiento verde – зелёный перец – овощ',
-  'ajo – чеснок – овощ/специя',
-  'aceite de oliva virgen extra – оливковое масло extra virgin – жир/масло',
-  'vinagre de vino – винный уксус – приправа',
-  'sal – соль – специя',
-  'remolacha licuada – пюрированная свёкла – овощ (модерн)',
-  'esferificaciones de aceite – сферификации масла – техника/декор',
-  'gel de vinagre – гель из уксуса – техника/декор',
-  'espuma de tomate – томатная пена – техника/текстура',
-  'crujiente de pan de ajo – хрустящий чесночный тост – декор/гарнир',
-  'cerezas – вишни/черешни – фрукт',
-  'ají amarillo – жёлтый перуанский перец чили – специя/перец',
+  'tomate maduro – спелый помидор',
+  'pepino – огурец',
+  'pimiento verde – зелёный перец',
+  'ajo – чеснок',
+  'aceite de oliva virgen extra – оливковое масло',
+  'vinagre de vino – винный уксус',
+  'sal – соль',
+  'remolacha licuada – пюрированная свёкла)',
+  'esferificaciones de aceite – сферификации масла',
+  'gel de vinagre – гель из уксуса',
+  'espuma de tomate – томатная пена',
+  'crujiente de pan de ajo – хрустящий чесночный тост',
+  'cerezas – вишни/черешни',
+  'ají amarillo – жёлтый перуанский перец чили',
 ];
 
 const utensils = [
-  'batidora – блендер/миксер – прибор',
-  'vaso medidor – мерный стакан – посуда',
-  'colador fino – мелкое сито – посуда',
-  'sifón – кулинарный сифон – прибор',
-  'cuchillo bien afilado – хорошо заточенный нож – инструмент',
+  'batidora – блендер/миксер',
+  'vaso medidor – мерный стакан',
+  'colador fino – мелкое сито',
+  'sifón – кулинарный сифон',
+  'cuchillo bien afilado – хорошо заточенный нож',
 ];
 
 const verbs = [
