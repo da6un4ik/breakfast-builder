@@ -1,235 +1,312 @@
-const introParagraphs = [
-  'En Madrid hay un restaurante muy especial llamado DiverXO, creado por el chef Dabiz Muñoz, famoso por su cocina hedonista y creativa. En este lugar no solo se come, se vive una experiencia vanguardista que sorprende en cada plato. La cocina de DiverXO mezcla tradición española con técnicas modernas y toques de otras culturas, como si cada bocado fuera un viaje por el mundo.',
-  'Un ejemplo perfecto es su idea de “deformar” platos clásicos como el gazpacho andaluz, una sopa fría tradicional de tomate y verduras que normalmente se sirve de forma muy sencilla. En versión moderna, el gazpacho cambia de textura y presentación: puede aparecer como una espuma ligera, como pequeñas esferas que explotan en la boca o como una crema muy fina con contrastes crujientes. Lo importante es mantener el sabor fresco del gazpacho, pero jugar con la sorpresa, la intensidad y la combinación de ingredientes.',
-  'En este curso vamos a usar este tipo de platos para aprender español: vamos a leer recetas, descubrir nuevas palabras y hablar de sabores, sensaciones y emociones en la mesa. Así, tú también podrás describir tu propio gazpacho mutante y contar una historia en cada cucharada.',
+import { useMemo, useState } from 'react';
+
+type Goal = 'lose' | 'maintain' | 'gain';
+type Budget = 'low' | 'medium' | 'premium';
+type Restriction = 'lactose' | 'gluten' | 'nuts';
+
+type Ingredient = {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  tags?: Restriction[];
+};
+
+type Breakfast = {
+  id: string;
+  title: string;
+  prepTime: number;
+  budget: Budget;
+  ingredients: string[];
+  steps: string[];
+};
+
+const budgetOrder: Budget[] = ['low', 'medium', 'premium'];
+
+const ingredients: Ingredient[] = [
+  { id: 'oats', name: 'Овсяные хлопья', calories: 150, protein: 5, carbs: 27, fats: 3, tags: ['gluten'] },
+  { id: 'chia', name: 'Семена чиа', calories: 80, protein: 3, carbs: 7, fats: 5 },
+  { id: 'banana', name: 'Банан', calories: 90, protein: 1, carbs: 23, fats: 0 },
+  { id: 'berries', name: 'Ягоды', calories: 45, protein: 1, carbs: 10, fats: 0 },
+  { id: 'eggs', name: 'Яйца', calories: 140, protein: 12, carbs: 1, fats: 10 },
+  { id: 'avocado', name: 'Авокадо', calories: 120, protein: 2, carbs: 6, fats: 11 },
+  { id: 'toast', name: 'Цельнозерновой тост', calories: 110, protein: 4, carbs: 20, fats: 2, tags: ['gluten'] },
+  { id: 'greek-yogurt', name: 'Греческий йогурт', calories: 120, protein: 15, carbs: 6, fats: 4, tags: ['lactose'] },
+  { id: 'cottage-cheese', name: 'Творог', calories: 130, protein: 18, carbs: 3, fats: 5, tags: ['lactose'] },
+  { id: 'peanut-butter', name: 'Арахисовая паста', calories: 95, protein: 4, carbs: 3, fats: 8, tags: ['nuts'] },
+  { id: 'protein-powder', name: 'Протеин', calories: 110, protein: 22, carbs: 3, fats: 1, tags: ['lactose'] },
+  { id: 'milk', name: 'Молоко', calories: 90, protein: 6, carbs: 9, fats: 3, tags: ['lactose'] },
+  { id: 'honey', name: 'Мёд', calories: 30, protein: 0, carbs: 8, fats: 0 },
+  { id: 'apple', name: 'Яблоко', calories: 60, protein: 0, carbs: 16, fats: 0 },
+  { id: 'spinach', name: 'Шпинат', calories: 15, protein: 2, carbs: 2, fats: 0 },
+  { id: 'almonds', name: 'Миндаль', calories: 75, protein: 3, carbs: 2, fats: 7, tags: ['nuts'] },
 ];
 
-const glossary = [
-  ['vanguardia', 'авангард, передовой стиль'],
-  ['cocina hedonista', 'гедонистская кухня, ориентированная на удовольствие'],
-  ['fusión', 'фьюжн, смешение разных кулинарных традиций'],
-  ['textura', 'текстура, ощущение во рту'],
-  ['explosión de sabor', 'взрыв вкуса'],
-  ['sopa fría', 'холодный суп'],
-  ['plato clásico', 'классическое блюдо'],
-  ['presentación', 'подача (как выглядит блюдо)'],
-  ['sorpresa', 'сюрприз, неожиданность'],
-  ['viaje sensorial', 'сенсорное путешествие, путешествие для чувств'],
-];
-
-const ingredients = [
-  'tomate maduro – спелый помидор – овощ',
-  'pepino – огурец – овощ',
-  'pimiento verde – зелёный перец – овощ',
-  'ajo – чеснок – овощ/специя',
-  'aceite de oliva virgen extra – оливковое масло extra virgin – жир/масло',
-  'vinagre de vino – винный уксус – приправа',
-  'sal – соль – специя',
-  'remolacha licuada – пюрированная свёкла – овощ (модерн)',
-  'esferificaciones de aceite – сферификации масла – техника/декор',
-  'gel de vinagre – гель из уксуса – техника/декор',
-  'espuma de tomate – томатная пена – техника/текстура',
-  'crujiente de pan de ajo – хрустящий чесночный тост – декор/гарнир',
-  'cerezas – вишни/черешни – фрукт',
-  'ají amarillo – жёлтый перуанский перец чили – специя/перец',
-];
-
-const utensils = [
-  'batidora – блендер/миксер – прибор',
-  'vaso medidor – мерный стакан – посуда',
-  'colador fino – мелкое сито – посуда',
-  'sifón – кулинарный сифон – прибор',
-  'cuchillo bien afilado – хорошо заточенный нож – инструмент',
-];
-
-const verbs = [
-  'triturar – измельчать (в пюре)',
-  'licuar – делать жидким, сбивать',
-  'colar – процеживать',
-  'emulsionar – эмульгировать',
-  'enfriar – охлаждать',
-  'decorar – украшать',
-];
-
-const recipeIngredients = [
-  '4 tomates maduros',
-  '1/2 pepino, pelado y sin semillas',
-  '1/2 pimiento verde, sin semillas',
-  '1 diente de ajo pequeño, sin el centro',
-  '2 cucharadas de aceite de oliva virgen extra',
-  '1 cucharada de vinagre de vino (o de Jerez)',
-  'Sal al gusto',
-  '50 ml de agua fría (si quieres un gazpacho más líquido)',
-  '50 g de remolacha licuada (para dar color y un toque dulce)',
-  'Espuma de tomate ya preparada en un sifón pequeño',
-  'Esferificaciones de aceite de oliva (para decorar)',
-  'Crujiente de pan de ajo (trozos pequeños de pan tostado con ajo)',
-];
-
-const recipeSteps = [
-  'Primero, lava bien los tomates, el pepino y el pimiento verde, y corta todas las verduras en trozos grandes.',
-  'Pon los trozos de tomate, pepino, pimiento y el diente de ajo en el vaso de la batidora, añade la sal y tritura hasta obtener una crema muy fina.',
-  'Luego, añade el aceite de oliva y el vinagre y vuelve a triturar para emulsionar el gazpacho y conseguir una textura más suave.',
-  'Incorpora la remolacha licuada y, si lo necesitas, un poco de agua fría; tritura de nuevo hasta que el color y la textura sean homogéneos.',
-  'Después, pasa la mezcla por un colador fino para eliminar pieles y semillas, y enfría el gazpacho en la nevera durante al menos una hora.',
-  'Mientras el gazpacho se enfría, prepara la espuma de tomate en el sifón siguiendo las instrucciones del fabricante y agita bien para que quede ligera.',
-  'Al final, sirve el gazpacho en cuencos pequeños, coloca encima una nube de espuma de tomate y decora con esferificaciones de aceite y crujiente de pan de ajo.',
-  'Prueba el plato y, si es necesario, ajusta de nuevo la sal o el vinagre antes de servir para equilibrar el sabor.',
-];
-
-const questionSections = [
+const breakfasts: Breakfast[] = [
   {
-    title: 'PREGUNTAS DE COMPRENSIÓN',
-    items: [
-      '1. ¿Qué tipo de experiencia ofrece el restaurante DiverXO? a) Una experiencia muy tradicional y simple b) Una experiencia vanguardista y sorprendente c) Una experiencia rápida y barata',
-      '2. ¿Qué ocurre con el gazpacho en la versión moderna? a) Pierde completamente su sabor clásico b) Mantiene el sabor fresco, pero cambia la textura y la presentación c) Se sirve caliente y sin verduras',
-      '3. ¿Por qué es interesante aprender español a través de platos como el gazpacho mutante? (Responde en ruso o en español.)',
-    ],
+    id: 'protein-oats',
+    title: 'Протеиновая овсянка с бананом',
+    prepTime: 7,
+    budget: 'low',
+    ingredients: ['oats', 'milk', 'banana', 'protein-powder'],
+    steps: ['Залей овсянку молоком и прогрей 3–4 минуты.', 'Добавь протеин и перемешай.', 'Укрась бананом.'],
   },
   {
-    title: 'PRÁCTICA: VOCABULARIO',
-    items: [
-      'EJERCICIO 1. LA PALABRA EXTRAÑA. Marca la palabra que NO encaja en un gazpacho: 1) tomate maduro / pepino / pimiento verde / queso azul. 2) aceite de oliva / vinagre de vino / sal / cerezas. 3) remolacha licuada / ají amarillo / esferificaciones de aceite / yogur natural.',
-      'EJERCICIO 2. SIGNIFICADO DE PALABRAS. Elige la traducción correcta: sopa fría; textura muy fina; sabor ligeramente picante; crujiente de pan; toque ácido; color intenso gracias a la remolacha.',
-    ],
+    id: 'eggs-toast',
+    title: 'Тост с авокадо и яйцом',
+    prepTime: 8,
+    budget: 'medium',
+    ingredients: ['toast', 'eggs', 'avocado', 'spinach'],
+    steps: ['Поджарь тост.', 'Приготовь яйцо на сковороде или в микроволновке.', 'Собери тост с авокадо и шпинатом.'],
   },
   {
-    title: 'PRÁCTICA: IMPERATIVO',
-    items: [
-      'EJERCICIO 3. DE TÚ A USTED. Elige la forma correcta de usted: Lave/Triture/Añada/Pase/Pruebe y corrija.',
-    ],
+    id: 'yogurt-bowl',
+    title: 'Йогурт-болл с ягодами и чиа',
+    prepTime: 4,
+    budget: 'medium',
+    ingredients: ['greek-yogurt', 'berries', 'chia', 'honey'],
+    steps: ['Выложи йогурт в миску.', 'Добавь ягоды и чиа.', 'По желанию добавь мёд.'],
   },
   {
-    title: 'PRÁCTICA: COMPRENSIÓN COMUNICATIVA',
-    items: [
-      'EJERCICIO 4. COMPRENSIÓN DEL DIÁLOGO: preferencias del cliente sobre temperatura, acidez, ajo y textura crujiente.',
-      'EJERCICIO 5. “ME GUSTA EL GAZPACHO…”: completa con frío, ácido y crujiente según contexto.',
-    ],
+    id: 'cottage-apple',
+    title: 'Творог с яблоком и миндалём',
+    prepTime: 3,
+    budget: 'low',
+    ingredients: ['cottage-cheese', 'apple', 'almonds', 'honey'],
+    steps: ['Нарежь яблоко.', 'Смешай творог с яблоком.', 'Добавь миндаль и немного мёда.'],
+  },
+  {
+    id: 'green-smoothie',
+    title: 'Зелёный смузи для энергии',
+    prepTime: 5,
+    budget: 'premium',
+    ingredients: ['banana', 'spinach', 'protein-powder', 'milk', 'chia'],
+    steps: ['Помести все ингредиенты в блендер.', 'Взбей 30–40 секунд.', 'Подавай сразу.'],
   },
 ];
 
-const cardClass =
-  'rounded-3xl border border-orange-200/80 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-8';
+function getNutrition(ingredientIds: string[]) {
+  return ingredientIds.reduce(
+    (acc, id) => {
+      const ingredient = ingredients.find((item) => item.id === id);
+      if (!ingredient) return acc;
+      acc.calories += ingredient.calories;
+      acc.protein += ingredient.protein;
+      acc.carbs += ingredient.carbs;
+      acc.fats += ingredient.fats;
+      return acc;
+    },
+    { calories: 0, protein: 0, carbs: 0, fats: 0 },
+  );
+}
 
 export default function App() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-rose-50 text-slate-800">
-      <header className="mx-auto max-w-6xl px-4 pb-8 pt-12 sm:px-6 lg:px-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-orange-500">Curso de español gastronómico</p>
-        <h1 className="mt-4 max-w-4xl font-serif text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl">
-          Gazpacho 2.0: historia, vocabulario y práctica comunicativa
-        </h1>
-        <p className="mt-5 max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">
-          Página didáctica con enfoque visual moderno para trabajar comprensión lectora, léxico culinario e imperativo formal.
-        </p>
-      </header>
+  const [timeLimit, setTimeLimit] = useState(7);
+  const [goal, setGoal] = useState<Goal>('maintain');
+  const [budget, setBudget] = useState<Budget>('medium');
+  const [restrictions, setRestrictions] = useState<Restriction[]>([]);
+  const [pantry, setPantry] = useState<string[]>(['banana', 'eggs', 'oats', 'toast']);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [weeklyPlan, setWeeklyPlan] = useState<Breakfast[]>([]);
 
-      <main className="mx-auto grid max-w-6xl gap-6 px-4 pb-16 sm:px-6 lg:px-8">
-        <section className={cardClass}>
-          <h2 className="font-serif text-3xl text-slate-900">Introducción</h2>
-          <div className="mt-4 space-y-4 text-[1.04rem] leading-8 text-slate-700">
-            {introParagraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
+  const recommended = useMemo(() => {
+    const budgetIndex = budgetOrder.indexOf(budget);
+    const filtered = breakfasts.filter((meal) => {
+      const mealBudgetIndex = budgetOrder.indexOf(meal.budget);
+      const blockedByRestriction = meal.ingredients.some((id) => {
+        const ingredient = ingredients.find((item) => item.id === id);
+        return ingredient?.tags?.some((tag) => restrictions.includes(tag));
+      });
+
+      return meal.prepTime <= timeLimit && mealBudgetIndex <= budgetIndex && !blockedByRestriction;
+    });
+
+    const scored = filtered
+      .map((meal) => {
+        const nutrition = getNutrition(meal.ingredients);
+        const pantryMatch = meal.ingredients.filter((item) => pantry.includes(item)).length;
+
+        let goalScore = 0;
+        if (goal === 'lose') goalScore = nutrition.calories <= 400 ? 4 : 1;
+        if (goal === 'maintain') goalScore = nutrition.protein >= 20 ? 3 : 2;
+        if (goal === 'gain') goalScore = nutrition.protein >= 28 ? 4 : 2;
+
+        return {
+          meal,
+          nutrition,
+          score: goalScore + pantryMatch,
+          pantryMatch,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+
+    return scored;
+  }, [timeLimit, goal, budget, restrictions, pantry]);
+
+  const shoppingList = useMemo(() => {
+    const needed = new Set<string>();
+    weeklyPlan.forEach((meal) => {
+      meal.ingredients.forEach((ingredient) => {
+        if (!pantry.includes(ingredient)) {
+          needed.add(ingredient);
+        }
+      });
+    });
+
+    return Array.from(needed).map((id) => ingredients.find((item) => item.id === id)?.name ?? id);
+  }, [weeklyPlan, pantry]);
+
+  const toggleRestriction = (value: Restriction) => {
+    setRestrictions((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]));
+  };
+
+  const togglePantry = (value: string) => {
+    setPantry((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]));
+  };
+
+  const toggleFavorite = (id: string) => {
+    setFavorites((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  };
+
+  const buildWeekPlan = () => {
+    const base = recommended.map((item) => item.meal);
+    if (!base.length) {
+      setWeeklyPlan([]);
+      return;
+    }
+
+    const week: Breakfast[] = [];
+    for (let index = 0; index < 5; index += 1) {
+      week.push(base[index % base.length]);
+    }
+    setWeeklyPlan(week);
+  };
+
+  return (
+    <div className="min-h-screen bg-amber-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <header className="rounded-3xl bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">MVP</p>
+          <h1 className="mt-2 text-3xl font-bold">Breakfast Builder — конструктор завтраков</h1>
+          <p className="mt-3 max-w-3xl text-slate-600">Выбери цель, время и бюджет — приложение подберёт 3 завтрака, соберёт план на 5 дней и список покупок.</p>
+        </header>
+
+        <section className="grid gap-6 lg:grid-cols-3">
+          <article className="rounded-3xl bg-white p-5 shadow-sm lg:col-span-1">
+            <h2 className="text-lg font-semibold">1) Настройки</h2>
+
+            <label className="mt-4 block text-sm font-medium">Время на завтрак: {timeLimit} мин</label>
+            <input
+              type="range"
+              min={3}
+              max={12}
+              step={1}
+              value={timeLimit}
+              onChange={(event) => setTimeLimit(Number(event.target.value))}
+              className="mt-2 w-full"
+            />
+
+            <div className="mt-4">
+              <p className="text-sm font-medium">Цель</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button className={`rounded-xl border px-3 py-1 text-sm ${goal === 'lose' ? 'bg-orange-100 border-orange-400' : 'border-slate-200'}`} onClick={() => setGoal('lose')}>Снижение веса</button>
+                <button className={`rounded-xl border px-3 py-1 text-sm ${goal === 'maintain' ? 'bg-orange-100 border-orange-400' : 'border-slate-200'}`} onClick={() => setGoal('maintain')}>Баланс</button>
+                <button className={`rounded-xl border px-3 py-1 text-sm ${goal === 'gain' ? 'bg-orange-100 border-orange-400' : 'border-slate-200'}`} onClick={() => setGoal('gain')}>Набор</button>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <p className="text-sm font-medium">Бюджет</p>
+              <select className="mt-2 w-full rounded-xl border border-slate-300 p-2" value={budget} onChange={(event) => setBudget(event.target.value as Budget)}>
+                <option value="low">Дешево</option>
+                <option value="medium">Средне</option>
+                <option value="premium">Премиум</option>
+              </select>
+            </div>
+
+            <div className="mt-4">
+              <p className="text-sm font-medium">Ограничения</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {([
+                  ['lactose', 'Без лактозы'],
+                  ['gluten', 'Без глютена'],
+                  ['nuts', 'Без орехов'],
+                ] as [Restriction, string][]).map(([key, title]) => (
+                  <button
+                    key={key}
+                    className={`rounded-xl border px-3 py-1 text-sm ${restrictions.includes(key) ? 'bg-rose-100 border-rose-400' : 'border-slate-200'}`}
+                    onClick={() => toggleRestriction(key)}
+                  >
+                    {title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </article>
+
+          <article className="rounded-3xl bg-white p-5 shadow-sm lg:col-span-2">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-lg font-semibold">2) Рекомендованные завтраки</h2>
+              <button className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white" onClick={buildWeekPlan}>Собрать план на 5 дней</button>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {recommended.map(({ meal, nutrition, pantryMatch }) => (
+                <div key={meal.id} className="rounded-2xl border border-slate-200 p-4">
+                  <p className="text-sm text-orange-600">{meal.prepTime} мин · {meal.budget}</p>
+                  <h3 className="mt-1 font-semibold">{meal.title}</h3>
+                  <p className="mt-2 text-sm text-slate-600">Ккал {nutrition.calories} · Б {nutrition.protein} · Ж {nutrition.fats} · У {nutrition.carbs}</p>
+                  <p className="mt-1 text-xs text-slate-500">Совпало с pantry: {pantryMatch}/{meal.ingredients.length}</p>
+                  <button className="mt-3 rounded-lg border border-slate-300 px-3 py-1 text-sm" onClick={() => toggleFavorite(meal.id)}>
+                    {favorites.includes(meal.id) ? '★ В избранном' : '☆ В избранное'}
+                  </button>
+                  <ol className="mt-3 list-decimal space-y-1 pl-4 text-xs text-slate-600">
+                    {meal.steps.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              ))}
+            </div>
+            {!recommended.length && <p className="mt-4 text-sm text-rose-600">Нет вариантов под текущие ограничения. Ослабь фильтры или увеличь время.</p>}
+          </article>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <article className={cardClass}>
-            <h3 className="font-serif text-2xl text-slate-900">Glosario</h3>
-            <ul className="mt-4 space-y-3 text-slate-700">
-              {glossary.map(([term, definition]) => (
-                <li key={term}>
-                  <span className="font-semibold text-slate-900">{term}</span> — {definition}
-                </li>
+          <article className="rounded-3xl bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold">3) Pantry — что есть дома</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {ingredients.map((ingredient) => (
+                <button
+                  key={ingredient.id}
+                  className={`rounded-xl border px-3 py-1 text-sm ${pantry.includes(ingredient.id) ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200'}`}
+                  onClick={() => togglePantry(ingredient.id)}
+                >
+                  {ingredient.name}
+                </button>
               ))}
+            </div>
+          </article>
+
+          <article className="rounded-3xl bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold">4) План и список покупок</h2>
+            <ul className="mt-3 space-y-2 text-sm">
+              {weeklyPlan.length ? (
+                weeklyPlan.map((meal, index) => <li key={`${meal.id}-${index}`}>День {index + 1}: {meal.title}</li>)
+              ) : (
+                <li className="text-slate-500">Пока пусто — нажми “Собрать план на 5 дней”.</li>
+              )}
+            </ul>
+            <h3 className="mt-4 font-medium">Список покупок</h3>
+            <ul className="mt-2 list-disc pl-5 text-sm text-slate-700">
+              {shoppingList.length ? shoppingList.map((item) => <li key={item}>{item}</li>) : <li>Все ингредиенты уже есть дома 🎉</li>}
             </ul>
           </article>
-
-          <article className={cardClass}>
-            <h3 className="font-serif text-2xl text-slate-900">Comprensión inicial</h3>
-            <ol className="mt-4 list-decimal space-y-3 pl-5 text-slate-700">
-              <li>
-                ¿Qué tipo de experiencia ofrece el restaurante DiverXO?
-                <div className="mt-1 text-sm text-slate-600">a) tradicional b) vanguardista c) rápida y barata</div>
-              </li>
-              <li>
-                ¿Qué ocurre con el gazpacho en la versión moderna?
-                <div className="mt-1 text-sm text-slate-600">a) pierde sabor b) mantiene sabor y cambia forma c) se sirve caliente</div>
-              </li>
-              <li>¿Por qué es útil aprender español con platos como el gazpacho mutante?</li>
-            </ol>
-          </article>
         </section>
-
-        <section className={cardClass}>
-          <h2 className="font-serif text-3xl text-slate-900">Ingredientes, utensilios y verbos</h2>
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <div>
-              <h3 className="text-lg font-semibold text-orange-600">Ingredientes para el Gazpacho 2.0</h3>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
-                {ingredients.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-orange-600">Utensilios</h3>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
-                {utensils.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-orange-600">Verbos clave</h3>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
-                {verbs.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <p className="mt-4 rounded-2xl bg-orange-100/70 p-3 text-sm text-slate-700">
-                <span className="font-medium">Ejemplo:</span> Tritura los tomates y cuela la mezcla para conseguir una textura muy fina.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className={cardClass}>
-          <h2 className="font-serif text-3xl text-slate-900">Receta (adaptada)</h2>
-          <div className="mt-6 grid gap-8 lg:grid-cols-2">
-            <div>
-              <h3 className="text-lg font-semibold text-orange-600">Ingredientes (2 personas)</h3>
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-slate-700">
-                {recipeIngredients.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-orange-600">Preparación</h3>
-              <ol className="mt-3 list-decimal space-y-2 pl-5 text-slate-700">
-                {recipeSteps.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-2">
-          {questionSections.map((section) => (
-            <article key={section.title} className={cardClass}>
-              <h3 className="font-serif text-2xl text-slate-900">{section.title}</h3>
-              <ul className="mt-4 space-y-3 text-slate-700">
-                {section.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </section>
-      </main>
+      </div>
     </div>
   );
 }
